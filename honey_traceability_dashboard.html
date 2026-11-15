@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIH 2026 - Honey Traceability Sequence Mining Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --info: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 24px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+        .badge { background: #3b82f620; color: #60a5fa; border: 1px solid #3b82f640; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .card-label { font-size: 13px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-val { font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--text-main); }
+        .card-val.warning { color: var(--accent); }
+        .card-val.danger { color: var(--danger); }
+        .card-val.success { color: var(--success); }
+        .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        @media(max-width: 900px) { .split-grid { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+        th { text-align: left; padding: 10px; background: #0f172a80; color: var(--text-sub); border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid var(--border); }
+        tr:hover { background: #33415540; }
+        .seq-pill { background: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b40; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 12px; }
+        .handoff-root { background: #ef444420; color: #f87171; border: 1px solid #ef444440; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+        .interactive-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .stages-select-box { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+        .stage-btn { background: #0f172a; color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 12px; }
+        .stage-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .stage-btn.selected { background: var(--accent); color: #000; font-weight: 600; border-color: var(--accent); }
+        .test-result-box { margin-top: 16px; padding: 16px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a60; }
+        .alert-high { border-color: var(--danger); background: #ef444415; color: #fca5a5; }
+        .alert-safe { border-color: var(--success); background: #10b98115; color: #6ee7b7; }
+        .chart-container { position: relative; height: 320px; width: 100%; }
+        .table-wrap { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h2>Honey Traceability Sequence Mining Platform</h2>
+            <p style="color: var(--text-sub); font-size: 14px; margin-top: 4px;">Smart India Hackathon 2026 | PS ID: SIH26021 | Ministry of MSME</p>
+        </div>
+        <div class="badge">Honey Chain Discovery Engine</div>
+    </div>
+
+    <div class="grid-cards">
+        <div class="card">
+            <div class="card-label">Monitored Batches</div>
+            <div class="card-val">1000</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Overall Baseline Failure Rate</div>
+            <div class="card-val danger">28.50%</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Mined High-Risk Sequences</div>
+            <div class="card-val warning">283</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Earliest Predictive Handoff</div>
+            <div class="card-val" style="font-size: 18px; color: #f87171; line-height: 1.3; margin-top: 14px;">Solar_Exposed_Transit</div>
+        </div>
+    </div>
+
+    <div class="split-grid">
+        <div class="card">
+            <h3 style="margin-bottom: 12px;">Mandatory Per-Stage Baseline Failure Rates</h3>
+            <div class="chart-container">
+                <canvas id="baselineChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom: 12px;">Stage Failure Likelihood Breakdown</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Handoff Stage</th>
+                            <th>Batches</th>
+                            <th>Fails</th>
+                            <th>Baseline Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="baselineTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3>Ranked Critical Risk Sequences (Sorted by Lift & Support)</h3>
+            <span class="badge" style="background: #ef444420; color: #f87171; border-color: #ef444440;">High Quality Risk Precursors</span>
+        </div>
+        <div class="table-wrap" style="max-height: 450px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Handling Sequence Pattern</th>
+                        <th>Earliest Predictive Handoff</th>
+                        <th>Length</th>
+                        <th>Support</th>
+                        <th>Confidence</th>
+                        <th>Lift</th>
+                    </tr>
+                </thead>
+                <tbody id="riskTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <h3>Live Traceability Sequence Risk Predictor</h3>
+        <p style="color: var(--text-sub); font-size: 13px; margin-top: 4px;">Select an ordered sequence of handoff nodes to predict downstream quality failure probability and check against mined high-risk subsequences.</p>
+        <div class="stages-select-box" id="stageButtonsContainer"></div>
+        <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <button class="stage-btn" style="background: #3b82f6; color: white;" onclick="evaluateCustomSequence()">Evaluate Sequence Risk</button>
+            <button class="stage-btn" onclick="clearSelectedStages()">Clear Sequence</button>
+        </div>
+        <div id="evaluationResult" class="test-result-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        const baselineData = [{"Stage": "High_Heat_Liquefaction", "Total_Batches": 226, "Failed_Batches": 106, "Baseline_Failure_Rate": 0.469}, {"Stage": "Testing_Bypassed", "Total_Batches": 355, "Failed_Batches": 146, "Baseline_Failure_Rate": 0.4113}, {"Stage": "Galvanized_Drum_Storage", "Total_Batches": 331, "Failed_Batches": 134, "Baseline_Failure_Rate": 0.4048}, {"Stage": "Solar_Exposed_Transit", "Total_Batches": 311, "Failed_Batches": 108, "Baseline_Failure_Rate": 0.3473}, {"Stage": "Apiary_Harvest_Traditional", "Total_Batches": 310, "Failed_Batches": 94, "Baseline_Failure_Rate": 0.3032}, {"Stage": "Glass_Jar_Bottling", "Total_Batches": 496, "Failed_Batches": 150, "Baseline_Failure_Rate": 0.3024}, {"Stage": "Cooperative_Collection", "Total_Batches": 357, "Failed_Batches": 106, "Baseline_Failure_Rate": 0.2969}, {"Stage": "Ambient_Warehouse", "Total_Batches": 331, "Failed_Batches": 90, "Baseline_Failure_Rate": 0.2719}, {"Stage": "Cold_Chain_Transit", "Total_Batches": 331, "Failed_Batches": 89, "Baseline_Failure_Rate": 0.2689}, {"Stage": "Bulk_Export_Drumming", "Total_Batches": 504, "Failed_Batches": 135, "Baseline_Failure_Rate": 0.2679}, {"Stage": "Apiary_Harvest_Modern", "Total_Batches": 333, "Failed_Batches": 85, "Baseline_Failure_Rate": 0.2553}, {"Stage": "Ambient_Trucking", "Total_Batches": 358, "Failed_Batches": 88, "Baseline_Failure_Rate": 0.2458}, {"Stage": "Vacuum_Dehydration", "Total_Batches": 256, "Failed_Batches": 61, "Baseline_Failure_Rate": 0.2383}, {"Stage": "NMR_Testing_Passed", "Total_Batches": 320, "Failed_Batches": 74, "Baseline_Failure_Rate": 0.2313}, {"Stage": "Enzyme_Safe_Filtration", "Total_Batches": 256, "Failed_Batches": 59, "Baseline_Failure_Rate": 0.2305}, {"Stage": "Gentle_Centrifugation", "Total_Batches": 262, "Failed_Batches": 59, "Baseline_Failure_Rate": 0.2252}, {"Stage": "Pollen_Analysis_Passed", "Total_Batches": 325, "Failed_Batches": 65, "Baseline_Failure_Rate": 0.2}, {"Stage": "Cold_Storage_Holding", "Total_Batches": 338, "Failed_Batches": 61, "Baseline_Failure_Rate": 0.1805}];
+        const riskData = [{"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Cold_Storage_Holding -> Bulk_Export_Drumming", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Cold_Storage_Holding", "Bulk_Export_Drumming"], "Sequence_Length": 4, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.015, "Support_Count": 15, "Total_Batches": 16, "Confidence": 0.9375, "Lift": 3.2895}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Bulk_Export_Drumming", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Bulk_Export_Drumming"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.028, "Support_Count": 28, "Total_Batches": 33, "Confidence": 0.8485, "Lift": 2.9771}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Cold_Storage_Holding", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Cold_Storage_Holding"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.016, "Support_Count": 16, "Total_Batches": 19, "Confidence": 0.8421, "Lift": 2.9548}, {"Sequence": "Cooperative_Collection -> Solar_Exposed_Transit -> High_Heat_Liquefaction", "Sequence_List": ["Cooperative_Collection", "Solar_Exposed_Transit", "High_Heat_Liquefaction"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.024, "Support_Count": 24, "Total_Batches": 29, "Confidence": 0.8276, "Lift": 2.9038}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Galvanized_Drum_Storage -> Glass_Jar_Bottling", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Galvanized_Drum_Storage", "Glass_Jar_Bottling"], "Sequence_Length": 4, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.014, "Support_Count": 14, "Total_Batches": 17, "Confidence": 0.8235, "Lift": 2.8896}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Pollen_Analysis_Passed", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Pollen_Analysis_Passed"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.017, "Support_Count": 17, "Total_Batches": 21, "Confidence": 0.8095, "Lift": 2.8404}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Galvanized_Drum_Storage", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Galvanized_Drum_Storage"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.02, "Support_Count": 20, "Total_Batches": 25, "Confidence": 0.8, "Lift": 2.807}, {"Sequence": "Cold_Chain_Transit -> Ambient_Warehouse -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Cold_Chain_Transit", "Ambient_Warehouse", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 4, "First_Handoff": "Cold_Chain_Transit", "Support": 0.015, "Support_Count": 15, "Total_Batches": 19, "Confidence": 0.7895, "Lift": 2.7701}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Testing_Bypassed", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.017, "Support_Count": 17, "Total_Batches": 22, "Confidence": 0.7727, "Lift": 2.7113}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction"], "Sequence_Length": 2, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.053, "Support_Count": 53, "Total_Batches": 69, "Confidence": 0.7681, "Lift": 2.6951}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> NMR_Testing_Passed", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "NMR_Testing_Passed"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.019, "Support_Count": 19, "Total_Batches": 26, "Confidence": 0.7308, "Lift": 2.5641}, {"Sequence": "Apiary_Harvest_Modern -> Ambient_Warehouse -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Apiary_Harvest_Modern", "Ambient_Warehouse", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 4, "First_Handoff": "Apiary_Harvest_Modern", "Support": 0.016, "Support_Count": 16, "Total_Batches": 23, "Confidence": 0.6957, "Lift": 2.4409}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Glass_Jar_Bottling", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.025, "Support_Count": 25, "Total_Batches": 36, "Confidence": 0.6944, "Lift": 2.4366}, {"Sequence": "Apiary_Harvest_Traditional -> Solar_Exposed_Transit -> High_Heat_Liquefaction", "Sequence_List": ["Apiary_Harvest_Traditional", "Solar_Exposed_Transit", "High_Heat_Liquefaction"], "Sequence_Length": 3, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.018, "Support_Count": 18, "Total_Batches": 26, "Confidence": 0.6923, "Lift": 2.4291}, {"Sequence": "Solar_Exposed_Transit -> High_Heat_Liquefaction -> Ambient_Warehouse", "Sequence_List": ["Solar_Exposed_Transit", "High_Heat_Liquefaction", "Ambient_Warehouse"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.017, "Support_Count": 17, "Total_Batches": 25, "Confidence": 0.68, "Lift": 2.386}, {"Sequence": "High_Heat_Liquefaction -> Ambient_Warehouse -> NMR_Testing_Passed", "Sequence_List": ["High_Heat_Liquefaction", "Ambient_Warehouse", "NMR_Testing_Passed"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.019, "Support_Count": 19, "Total_Batches": 30, "Confidence": 0.6333, "Lift": 2.2222}, {"Sequence": "High_Heat_Liquefaction -> NMR_Testing_Passed -> Glass_Jar_Bottling", "Sequence_List": ["High_Heat_Liquefaction", "NMR_Testing_Passed", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.019, "Support_Count": 19, "Total_Batches": 31, "Confidence": 0.6129, "Lift": 2.1505}, {"Sequence": "Cold_Chain_Transit -> Ambient_Warehouse -> Testing_Bypassed", "Sequence_List": ["Cold_Chain_Transit", "Ambient_Warehouse", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Cold_Chain_Transit", "Support": 0.022, "Support_Count": 22, "Total_Batches": 37, "Confidence": 0.5946, "Lift": 2.0863}, {"Sequence": "Apiary_Harvest_Traditional -> High_Heat_Liquefaction -> Ambient_Warehouse", "Sequence_List": ["Apiary_Harvest_Traditional", "High_Heat_Liquefaction", "Ambient_Warehouse"], "Sequence_Length": 3, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.016, "Support_Count": 16, "Total_Batches": 27, "Confidence": 0.5926, "Lift": 2.0793}, {"Sequence": "Ambient_Warehouse -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Ambient_Warehouse", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Ambient_Warehouse", "Support": 0.033, "Support_Count": 33, "Total_Batches": 56, "Confidence": 0.5893, "Lift": 2.0677}, {"Sequence": "High_Heat_Liquefaction -> Ambient_Warehouse -> Glass_Jar_Bottling", "Sequence_List": ["High_Heat_Liquefaction", "Ambient_Warehouse", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.024, "Support_Count": 24, "Total_Batches": 41, "Confidence": 0.5854, "Lift": 2.0539}, {"Sequence": "Solar_Exposed_Transit -> Ambient_Warehouse -> Testing_Bypassed", "Sequence_List": ["Solar_Exposed_Transit", "Ambient_Warehouse", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.019, "Support_Count": 19, "Total_Batches": 33, "Confidence": 0.5758, "Lift": 2.0202}, {"Sequence": "Apiary_Harvest_Traditional -> High_Heat_Liquefaction -> Bulk_Export_Drumming", "Sequence_List": ["Apiary_Harvest_Traditional", "High_Heat_Liquefaction", "Bulk_Export_Drumming"], "Sequence_Length": 3, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.023, "Support_Count": 23, "Total_Batches": 40, "Confidence": 0.575, "Lift": 2.0175}, {"Sequence": "High_Heat_Liquefaction -> Ambient_Warehouse", "Sequence_List": ["High_Heat_Liquefaction", "Ambient_Warehouse"], "Sequence_Length": 2, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.043, "Support_Count": 43, "Total_Batches": 75, "Confidence": 0.5733, "Lift": 2.0117}, {"Sequence": "Cooperative_Collection -> Solar_Exposed_Transit -> Testing_Bypassed", "Sequence_List": ["Cooperative_Collection", "Solar_Exposed_Transit", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.027, "Support_Count": 27, "Total_Batches": 48, "Confidence": 0.5625, "Lift": 1.9737}, {"Sequence": "Cooperative_Collection -> High_Heat_Liquefaction -> Galvanized_Drum_Storage", "Sequence_List": ["Cooperative_Collection", "High_Heat_Liquefaction", "Galvanized_Drum_Storage"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.018, "Support_Count": 18, "Total_Batches": 32, "Confidence": 0.5625, "Lift": 1.9737}, {"Sequence": "High_Heat_Liquefaction -> Ambient_Warehouse -> Bulk_Export_Drumming", "Sequence_List": ["High_Heat_Liquefaction", "Ambient_Warehouse", "Bulk_Export_Drumming"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.019, "Support_Count": 19, "Total_Batches": 34, "Confidence": 0.5588, "Lift": 1.9608}, {"Sequence": "High_Heat_Liquefaction -> Galvanized_Drum_Storage -> Glass_Jar_Bottling", "Sequence_List": ["High_Heat_Liquefaction", "Galvanized_Drum_Storage", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.021, "Support_Count": 21, "Total_Batches": 38, "Confidence": 0.5526, "Lift": 1.9391}, {"Sequence": "Cooperative_Collection -> Galvanized_Drum_Storage -> Glass_Jar_Bottling", "Sequence_List": ["Cooperative_Collection", "Galvanized_Drum_Storage", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.034, "Support_Count": 34, "Total_Batches": 62, "Confidence": 0.5484, "Lift": 1.9242}, {"Sequence": "Cold_Chain_Transit -> High_Heat_Liquefaction -> Ambient_Warehouse", "Sequence_List": ["Cold_Chain_Transit", "High_Heat_Liquefaction", "Ambient_Warehouse"], "Sequence_Length": 3, "First_Handoff": "Cold_Chain_Transit", "Support": 0.017, "Support_Count": 17, "Total_Batches": 31, "Confidence": 0.5484, "Lift": 1.9242}, {"Sequence": "Cooperative_Collection -> Solar_Exposed_Transit -> Galvanized_Drum_Storage", "Sequence_List": ["Cooperative_Collection", "Solar_Exposed_Transit", "Galvanized_Drum_Storage"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.021, "Support_Count": 21, "Total_Batches": 39, "Confidence": 0.5385, "Lift": 1.8893}, {"Sequence": "Cooperative_Collection -> Solar_Exposed_Transit -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Cooperative_Collection", "Solar_Exposed_Transit", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 4, "First_Handoff": "Cooperative_Collection", "Support": 0.014, "Support_Count": 14, "Total_Batches": 26, "Confidence": 0.5385, "Lift": 1.8893}, {"Sequence": "Cooperative_Collection -> High_Heat_Liquefaction -> Ambient_Warehouse", "Sequence_List": ["Cooperative_Collection", "High_Heat_Liquefaction", "Ambient_Warehouse"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.014, "Support_Count": 14, "Total_Batches": 26, "Confidence": 0.5385, "Lift": 1.8893}, {"Sequence": "Cold_Chain_Transit -> Enzyme_Safe_Filtration -> Testing_Bypassed", "Sequence_List": ["Cold_Chain_Transit", "Enzyme_Safe_Filtration", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Cold_Chain_Transit", "Support": 0.014, "Support_Count": 14, "Total_Batches": 26, "Confidence": 0.5385, "Lift": 1.8893}, {"Sequence": "Apiary_Harvest_Traditional -> High_Heat_Liquefaction -> Testing_Bypassed", "Sequence_List": ["Apiary_Harvest_Traditional", "High_Heat_Liquefaction", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.014, "Support_Count": 14, "Total_Batches": 26, "Confidence": 0.5385, "Lift": 1.8893}, {"Sequence": "Cooperative_Collection -> High_Heat_Liquefaction -> NMR_Testing_Passed", "Sequence_List": ["Cooperative_Collection", "High_Heat_Liquefaction", "NMR_Testing_Passed"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.015, "Support_Count": 15, "Total_Batches": 28, "Confidence": 0.5357, "Lift": 1.8797}, {"Sequence": "Cooperative_Collection -> Enzyme_Safe_Filtration -> Testing_Bypassed", "Sequence_List": ["Cooperative_Collection", "Enzyme_Safe_Filtration", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.017, "Support_Count": 17, "Total_Batches": 32, "Confidence": 0.5312, "Lift": 1.864}, {"Sequence": "High_Heat_Liquefaction -> NMR_Testing_Passed", "Sequence_List": ["High_Heat_Liquefaction", "NMR_Testing_Passed"], "Sequence_Length": 2, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.038, "Support_Count": 38, "Total_Batches": 73, "Confidence": 0.5205, "Lift": 1.8265}, {"Sequence": "Apiary_Harvest_Traditional -> Solar_Exposed_Transit -> Testing_Bypassed", "Sequence_List": ["Apiary_Harvest_Traditional", "Solar_Exposed_Transit", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.016, "Support_Count": 16, "Total_Batches": 31, "Confidence": 0.5161, "Lift": 1.811}, {"Sequence": "Apiary_Harvest_Traditional -> High_Heat_Liquefaction", "Sequence_List": ["Apiary_Harvest_Traditional", "High_Heat_Liquefaction"], "Sequence_Length": 2, "First_Handoff": "Apiary_Harvest_Traditional", "Support": 0.038, "Support_Count": 38, "Total_Batches": 74, "Confidence": 0.5135, "Lift": 1.8018}, {"Sequence": "High_Heat_Liquefaction -> Testing_Bypassed -> Bulk_Export_Drumming", "Sequence_List": ["High_Heat_Liquefaction", "Testing_Bypassed", "Bulk_Export_Drumming"], "Sequence_Length": 3, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.021, "Support_Count": 21, "Total_Batches": 41, "Confidence": 0.5122, "Lift": 1.7972}, {"Sequence": "Vacuum_Dehydration -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Vacuum_Dehydration", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Vacuum_Dehydration", "Support": 0.022, "Support_Count": 22, "Total_Batches": 43, "Confidence": 0.5116, "Lift": 1.7952}, {"Sequence": "Solar_Exposed_Transit -> Testing_Bypassed -> Bulk_Export_Drumming", "Sequence_List": ["Solar_Exposed_Transit", "Testing_Bypassed", "Bulk_Export_Drumming"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.025, "Support_Count": 25, "Total_Batches": 49, "Confidence": 0.5102, "Lift": 1.7902}, {"Sequence": "Solar_Exposed_Transit -> Testing_Bypassed", "Sequence_List": ["Solar_Exposed_Transit", "Testing_Bypassed"], "Sequence_Length": 2, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.054, "Support_Count": 54, "Total_Batches": 108, "Confidence": 0.5, "Lift": 1.7544}, {"Sequence": "Cooperative_Collection -> Galvanized_Drum_Storage -> Testing_Bypassed", "Sequence_List": ["Cooperative_Collection", "Galvanized_Drum_Storage", "Testing_Bypassed"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.022, "Support_Count": 22, "Total_Batches": 44, "Confidence": 0.5, "Lift": 1.7544}, {"Sequence": "Cooperative_Collection -> Vacuum_Dehydration -> Galvanized_Drum_Storage", "Sequence_List": ["Cooperative_Collection", "Vacuum_Dehydration", "Galvanized_Drum_Storage"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.017, "Support_Count": 17, "Total_Batches": 34, "Confidence": 0.5, "Lift": 1.7544}, {"Sequence": "High_Heat_Liquefaction -> Galvanized_Drum_Storage", "Sequence_List": ["High_Heat_Liquefaction", "Galvanized_Drum_Storage"], "Sequence_Length": 2, "First_Handoff": "High_Heat_Liquefaction", "Support": 0.038, "Support_Count": 38, "Total_Batches": 77, "Confidence": 0.4935, "Lift": 1.7316}, {"Sequence": "Solar_Exposed_Transit -> Testing_Bypassed -> Glass_Jar_Bottling", "Sequence_List": ["Solar_Exposed_Transit", "Testing_Bypassed", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Solar_Exposed_Transit", "Support": 0.029, "Support_Count": 29, "Total_Batches": 59, "Confidence": 0.4915, "Lift": 1.7247}, {"Sequence": "Ambient_Trucking -> Galvanized_Drum_Storage -> Glass_Jar_Bottling", "Sequence_List": ["Ambient_Trucking", "Galvanized_Drum_Storage", "Glass_Jar_Bottling"], "Sequence_Length": 3, "First_Handoff": "Ambient_Trucking", "Support": 0.025, "Support_Count": 25, "Total_Batches": 51, "Confidence": 0.4902, "Lift": 1.72}, {"Sequence": "Cooperative_Collection -> Cold_Chain_Transit -> Galvanized_Drum_Storage", "Sequence_List": ["Cooperative_Collection", "Cold_Chain_Transit", "Galvanized_Drum_Storage"], "Sequence_Length": 3, "First_Handoff": "Cooperative_Collection", "Support": 0.018, "Support_Count": 18, "Total_Batches": 37, "Confidence": 0.4865, "Lift": 1.707}];
+        const allStages = ["Ambient_Trucking", "Ambient_Warehouse", "Apiary_Harvest_Modern", "Apiary_Harvest_Traditional", "Bulk_Export_Drumming", "Cold_Chain_Transit", "Cold_Storage_Holding", "Cooperative_Collection", "Enzyme_Safe_Filtration", "Galvanized_Drum_Storage", "Gentle_Centrifugation", "Glass_Jar_Bottling", "High_Heat_Liquefaction", "NMR_Testing_Passed", "Pollen_Analysis_Passed", "Solar_Exposed_Transit", "Testing_Bypassed", "Vacuum_Dehydration"];
+        const overallBaseline = 0.285;
+
+        const tbodyBaseline = document.getElementById("baselineTableBody");
+        baselineData.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td><b>${item.Stage}</b></td><td>${item.Total_Batches}</td><td>${item.Failed_Batches}</td><td><span style="color: ${item.Baseline_Failure_Rate > overallBaseline ? '#ef4444' : '#10b981'}; font-weight: 600;">${(item.Baseline_Failure_Rate * 100).toFixed(2)}%</span></td>`;
+            tbodyBaseline.appendChild(tr);
+        });
+
+        const ctx = document.getElementById("baselineChart").getContext("2d");
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: baselineData.map(d => d.Stage),
+                datasets: [{
+                    label: "Per-Stage Failure Rate (%)",
+                    data: baselineData.map(d => (d.Baseline_Failure_Rate * 100).toFixed(2)),
+                    backgroundColor: baselineData.map(d => d.Baseline_Failure_Rate > overallBaseline ? "#ef4444" : "#3b82f6"),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: "#94a3b8" }, grid: { color: "#33415540" } },
+                    y: { ticks: { color: "#f8fafc", font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
+
+        const tbodyRisk = document.getElementById("riskTableBody");
+        riskData.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span class="seq-pill">${item.Sequence}</span></td>
+                <td><span class="handoff-root">${item.First_Handoff}</span></td>
+                <td>${item.Sequence_Length}</td>
+                <td>${(item.Support * 100).toFixed(2)}% (${item.Support_Count})</td>
+                <td><b style="color: #f59e0b;">${(item.Confidence * 100).toFixed(2)}%</b></td>
+                <td><b style="color: #ef4444;">${item.Lift.toFixed(2)}x</b></td>
+            `;
+            tbodyRisk.appendChild(tr);
+        });
+
+        let currentSequence = [];
+        const btnContainer = document.getElementById("stageButtonsContainer");
+        allStages.forEach(stage => {
+            const btn = document.createElement("button");
+            btn.className = "stage-btn";
+            btn.textContent = "+ " + stage;
+            btn.onclick = () => {
+                currentSequence.push(stage);
+                renderSelectedStages();
+            };
+            btnContainer.appendChild(btn);
+        });
+
+        function renderSelectedStages() {
+            const resBox = document.getElementById("evaluationResult");
+            if (currentSequence.length === 0) {
+                resBox.style.display = "none";
+                return;
+            }
+            resBox.style.display = "block";
+            resBox.className = "test-result-box";
+            resBox.innerHTML = `<b>Current Handling Pathway:</b><br><div style="margin-top: 8px;"><span class="seq-pill">${currentSequence.join(" &rarr; ")}</span></div>`;
+        }
+
+        function clearSelectedStages() {
+            currentSequence = [];
+            renderSelectedStages();
+        }
+
+        function isSubsequence(sub, seq) {
+            let i = 0;
+            for (let j = 0; j < seq.length && i < sub.length; j++) {
+                if (seq[j] === sub[i]) i++;
+            }
+            return i === sub.length;
+        }
+
+        function evaluateCustomSequence() {
+            const resBox = document.getElementById("evaluationResult");
+            if (currentSequence.length === 0) {
+                alert("Please add at least one stage to evaluate.");
+                return;
+            }
+            let matchingRisks = [];
+            riskData.forEach(risk => {
+                if (isSubsequence(risk.Sequence_List, currentSequence)) {
+                    matchingRisks.push(risk);
+                }
+            });
+
+            resBox.style.display = "block";
+            if (matchingRisks.length > 0) {
+                matchingRisks.sort((a, b) => b.Lift - a.Lift);
+                const worst = matchingRisks[0];
+                resBox.className = "test-result-box alert-high";
+                resBox.innerHTML = `
+                    <div style="font-size: 16px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">
+                        CRITICAL QUALITY RISK DETECTED
+                    </div>
+                    <div><b>Pathway:</b> <span class="seq-pill">${currentSequence.join(" &rarr; ")}</span></div>
+                    <div style="margin-top: 8px;"><b>Matched High-Risk Subsequence:</b> <span style="color: #fbbf24;">${worst.Sequence}</span></div>
+                    <div style="margin-top: 6px;"><b>Earliest Predictive Handoff:</b> <span class="handoff-root">${worst.First_Handoff}</span></div>
+                    <div style="margin-top: 6px;"><b>Downstream Failure Probability (Confidence):</b> ${(worst.Confidence * 100).toFixed(2)}%</div>
+                    <div style="margin-top: 4px;"><b>Risk Multiplier (Lift vs Baseline):</b> ${worst.Lift.toFixed(2)}x Baseline Failure Rate</div>
+                `;
+            } else {
+                resBox.className = "test-result-box alert-safe";
+                resBox.innerHTML = `
+                    <div style="font-size: 16px; font-weight: 700; color: #10b981; margin-bottom: 8px;">
+                        ACCEPTABLE SEQUENCE (LOW PREDICTED FAILURE RISK)
+                    </div>
+                    <div><b>Pathway:</b> <span class="seq-pill">${currentSequence.join(" &rarr; ")}</span></div>
+                    <div style="margin-top: 8px;">No known high-lift failure patterns detected in this sequence. Expected failure rate remains below critical threshold.</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
