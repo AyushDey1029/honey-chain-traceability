@@ -62,8 +62,7 @@ c:\Projects\unsupervised\
 │   │   ├── BenchmarkView.jsx        # Model comparison matrix & confusion matrices
 │   │   ├── SimulatorView.jsx        # Interactive pathway builder & root-cause highlighter
 │   │   ├── BaselinesView.jsx        # Mandatory unconditional per-stage failure rates
-│   │   ├── MinedRulesView.jsx       # Searchable PrefixSpan rules (Support, Conf, Lift)
-│   │   └── BlockchainView.jsx       # SHA-256 Honey Chain blocks & smart contract escrow
+│   │   └── MinedRulesView.jsx       # Searchable PrefixSpan rules (Support, Conf, Lift)
 │   └── dist/                        # Production compiled frontend bundle
 ├── start_system.bat                 # One-click Windows batch launcher
 ├── start_system.ps1                 # One-click PowerShell launcher
@@ -116,8 +115,6 @@ Access the Vite dev server at `http://localhost:5173` (requests automatically pr
 | `GET` | `/api/baselines` | Mandatory per-stage baseline failure rates |
 | `GET` | `/api/mined-rules` | Top mined PrefixSpan sequential rules with Lift |
 | `POST` | `/api/predict` | Multi-model consensus prediction & root-cause detection |
-| `GET` | `/api/blockchain` | Cryptographic SHA-256 Honey Chain audit ledger |
-| `POST` | `/api/blockchain/record`| Commit new handoff block & trigger smart contract checks |
 | `POST` | `/api/retrain` | Retrain all 3 models and recompute metrics |
 
 ---

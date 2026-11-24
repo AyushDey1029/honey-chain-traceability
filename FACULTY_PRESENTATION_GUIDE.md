@@ -50,8 +50,6 @@ Show them this table from the **Model Benchmark & Story** tab:
    * Show the SIH mandatory unconditional baseline rates table (e.g. `High_Heat_Liquefaction` at 46.90% vs 28.50% global baseline).
 5. **Tab 4 ("Mined Risk Sequences")**:
    * Search for `Solar` or `Liquefaction`. Show the top sequence with **3.29x Lift Multiplier**.
-6. **Tab 5 ("Honey Chain Ledger")**:
-   * Demonstrate real-time cryptographic blockchain blocks linked with SHA-256 hashes, proving smart contract enforcement on-chain.
 
 ---
 
