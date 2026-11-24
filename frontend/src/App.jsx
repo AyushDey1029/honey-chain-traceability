@@ -4,7 +4,6 @@ import BenchmarkView from './components/BenchmarkView';
 import SimulatorView from './components/SimulatorView';
 import BaselinesView from './components/BaselinesView';
 import MinedRulesView from './components/MinedRulesView';
-import BlockchainView from './components/BlockchainView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('benchmark');
@@ -114,10 +113,6 @@ export default function App() {
         {activeTab === 'rules' && (
           <MinedRulesView rulesData={rulesData} />
         )}
-
-        {activeTab === 'blockchain' && (
-          <BlockchainView stages={stages} />
-        )}
       </main>
 
       <footer style={{
@@ -127,7 +122,7 @@ export default function App() {
         fontSize: 12,
         color: 'var(--text-muted)'
       }}>
-        Smart India Hackathon 2026 &bull; PS ID: SIH26021 &bull; Honey Chain Traceability & Smart Beekeeping Management &bull; Ministry of MSME
+        Smart India Hackathon 2026 &bull; PS ID: SIH26021 &bull; Supply Chain Sequence Mining & Discovery &bull; Ministry of MSME
       </footer>
     </div>
   );

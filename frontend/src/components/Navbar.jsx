@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Activity, GitFork, RefreshCw, Layers, Blocks } from 'lucide-react';
+import { Database, Activity, GitFork, RefreshCw, Layers } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onRetrain, isRetraining }) {
   const tabs = [
@@ -7,7 +7,6 @@ export default function Navbar({ activeTab, setActiveTab, onRetrain, isRetrainin
     { id: 'simulator', label: 'Interactive Pathway Simulator', icon: GitFork },
     { id: 'baselines', label: 'Per-Stage Baselines', icon: Activity },
     { id: 'rules', label: 'Mined Risk Sequences', icon: Database },
-    { id: 'blockchain', label: 'Honey Chain Ledger', icon: Blocks },
   ];
 
   return (
@@ -77,9 +76,9 @@ export default function Navbar({ activeTab, setActiveTab, onRetrain, isRetrainin
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
-                    padding: '8px 12px',
+                    padding: '8px 14px',
                     borderRadius: 6,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: isActive ? 600 : 500,
                     color: isActive ? '#fff' : 'var(--text-secondary)',
                     background: isActive ? 'var(--bg-card)' : 'transparent',
